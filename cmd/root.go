@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -41,13 +42,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.todoClient.yaml)")
 
 	// apiKey := "86df293aaead73693b8da7fd28b3549e"
-	// s := fmt.Sprintf("https://api.themoviedb.org/3/movie/")
-	// rootCmd.PersistentFlags().String("api-root", "https://localhost:8080", "MovieDB API URL")
+	rootCmd.PersistentFlags().String("api-root", APIROOT, "MovieDB API URL")
 
-	// replacer := strings.NewReplacer("-", "_")
-	// viper.SetEnvKeyReplacer(replacer)
-	// viper.SetEnvPrefix("TODO")
-	// viper.BindPFlag("api-root", rootCmd.PersistentFlags().Lookup("api-root"))
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("MOVIEDB")
+	viper.BindPFlag("api-root", rootCmd.PersistentFlags().Lookup("api-root"))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

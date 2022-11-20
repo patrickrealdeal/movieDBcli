@@ -10,7 +10,9 @@ import (
 )
 
 const APIKEY = "86df293aaead73693b8da7fd28b3549e"
-const APIURL = "https://api.themoviedb.org/3/movie/popular?api_key=" + APIKEY + "&language=en-US&page=1"
+
+// const APIURL = "https://api.themoviedb.org/3/search/movie?api_key=" + APIKEY + "&query=" + m + "&language=en-US&page=1"
+const APIROOT = "https://api.themoviedb.org/3"
 
 var (
 	ErrConnection      = errors.New("Connection error")
@@ -43,7 +45,7 @@ func newClient() *http.Client {
 	return c
 }
 
-func get(url string) ([]movie, error) {
+func getMovies(url string) ([]movie, error) {
 	r, err := newClient().Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrConnection, err)
@@ -75,4 +77,19 @@ func get(url string) ([]movie, error) {
 	}
 
 	return resp.List, nil
+}
+
+func getMovie(apiRoot, req string) (movie, error) {
+	u := fmt.Sprintf("%s/search/movie?api_key=%s&query=%s&language=en-US&page=1", apiRoot, APIKEY, req)
+
+	movies, err := getMovies(u)
+	if err != nil {
+		return movie{}, err
+	}
+
+	if len(movies) < 1 {
+		return movie{}, fmt.Errorf("%w: Invalid results", ErrInvalid)
+	}
+
+	return movies[0], nil
 }

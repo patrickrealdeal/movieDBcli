@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // movieCmd represents the movie command
@@ -16,19 +18,24 @@ var movieCmd = &cobra.Command{
 	Use:   "movie",
 	Short: "Search for movie <movie>",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// apiRoot := viper.GetString("api-root")
+		apiRoot := viper.GetString("api-root")
 
-		return listMovie(os.Stdout, APIURL)
+		return movieAction(os.Stdout, apiRoot, args)
 	},
 }
 
-func listMovie(out io.Writer, apiRoot string) error {
-	movies, err := get(apiRoot)
+func movieAction(out io.Writer, apiRoot string, args []string) error {
+	req := strings.Join(args, "+")
+	if req == "" {
+		return fmt.Errorf("You must provide a movie request: movie <name>.")
+	}
+
+	movie, err := getMovie(apiRoot, req)
 	if err != nil {
 		return err
 	}
 
-	_, err = fmt.Fprintln(out, movies[0].Title)
+	_, err = fmt.Fprintf(out, "\n%s\n\n%s\n", movie.Title, movie.Overview)
 
 	return err
 }
