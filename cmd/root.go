@@ -39,7 +39,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.todoClient.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.movieDBcli.yaml)")
 
 	// apiKey := "86df293aaead73693b8da7fd28b3549e"
 	rootCmd.PersistentFlags().String("api-root", APIROOT, "MovieDB API URL")

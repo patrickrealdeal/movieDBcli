@@ -35,7 +35,11 @@ func movieAction(out io.Writer, apiRoot string, args []string) error {
 		return err
 	}
 
-	_, err = fmt.Fprintf(out, "\n%s\n\n%s\n", movie.Title, movie.Overview)
+	return printMovie(out, movie)
+}
+
+func printMovie(out io.Writer, movie movie) error {
+	_, err := fmt.Fprintf(out, "\nTitle:  %s\n\nOverview: %s\n\nRating: %v\n", movie.Title, movie.Overview, movie.VoteAverage)
 
 	return err
 }
