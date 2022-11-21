@@ -49,7 +49,7 @@ func getDir(details credits, dirch chan string, wg *sync.WaitGroup) {
 	str := ""
 	for _, v := range details.Crew {
 		if v.Job == "Director" {
-			str = str + v.Name
+			str = str + v.Name + ","
 		}
 	}
 	str = strings.TrimSuffix(str, ",")
@@ -77,7 +77,7 @@ func getScreenplay(details credits, spch chan string, wg *sync.WaitGroup) {
 	str := ""
 	for _, v := range details.Crew {
 		if v.Job == "Screenplay" {
-			spch <- v.Name
+			str = str + v.Name + ","
 		}
 	}
 	str = strings.TrimSuffix(str, ",")
@@ -88,9 +88,9 @@ func getScreenplay(details credits, spch chan string, wg *sync.WaitGroup) {
 }
 
 func printMovie(out io.Writer, movie movie, details credits) error {
-	cinech := make(chan string, 5)
-	dirch := make(chan string, 5)
-	spch := make(chan string, 5)
+	cinech := make(chan string, 10)
+	dirch := make(chan string, 10)
+	spch := make(chan string, 10)
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 
