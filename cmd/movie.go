@@ -49,10 +49,10 @@ func getDir(details credits, dirch chan string, wg *sync.WaitGroup) {
 	str := ""
 	for _, v := range details.Crew {
 		if v.Job == "Director" {
-			str = str + v.Name + ","
+			str = str + v.Name + ", "
 		}
 	}
-	str = strings.TrimSuffix(str, ",")
+	str = strings.TrimSuffix(str, ", ")
 	dirch <- str
 
 	close(dirch)
@@ -63,10 +63,10 @@ func getCinematography(details credits, cinech chan string, wg *sync.WaitGroup) 
 	str := ""
 	for _, v := range details.Crew {
 		if v.Job == "Director of Photography" {
-			str = str + v.Name + ","
+			str = str + v.Name + ", "
 		}
 	}
-	str = strings.TrimSuffix(str, ",")
+	str = strings.TrimSuffix(str, ", ")
 	cinech <- str
 
 	close(cinech)
@@ -77,10 +77,10 @@ func getScreenplay(details credits, spch chan string, wg *sync.WaitGroup) {
 	str := ""
 	for _, v := range details.Crew {
 		if v.Job == "Screenplay" {
-			str = str + v.Name + ","
+			str = str + v.Name + ", "
 		}
 	}
-	str = strings.TrimSuffix(str, ",")
+	str = strings.TrimSuffix(str, ", ")
 	spch <- str
 
 	close(spch)
