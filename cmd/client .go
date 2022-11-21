@@ -33,6 +33,25 @@ type movie struct {
 	VoteAverage float32 `json:"vote_average"`
 }
 
+type cast struct {
+	CastID     int    `json:"id"`
+	Department string `json:"known_for_department"`
+	Name       string `json:"name"`
+}
+
+type crew struct {
+	CrewID             int    `json:"id"`
+	KnownForDepartment string `json:"known_for_department"`
+	Department         string `json:"department"`
+	Job                string `json:"job"`
+	Name               string `json:"name"`
+}
+
+type credits struct {
+	Cast []cast `json:"cast"`
+	Crew []crew `json:"crew"`
+}
+
 type movieList struct {
 	List []movie `json:"results"`
 }
@@ -45,7 +64,7 @@ func newClient() *http.Client {
 	return c
 }
 
-func getMovies(url string) ([]movie, error) {
+func getAll(url string) ([]movie, error) {
 	r, err := newClient().Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrConnection, err)
@@ -82,7 +101,7 @@ func getMovies(url string) ([]movie, error) {
 func getMovie(apiRoot, req string) (movie, error) {
 	u := fmt.Sprintf("%s/search/movie?api_key=%s&query=%s&language=en-US&page=1", apiRoot, APIKEY, req)
 
-	movies, err := getMovies(u)
+	movies, err := getAll(u)
 	if err != nil {
 		return movie{}, err
 	}
@@ -92,4 +111,40 @@ func getMovie(apiRoot, req string) (movie, error) {
 	}
 
 	return movies[0], nil
+}
+
+func getDetails(movieID int) (credits, error) {
+	u := fmt.Sprintf("%s/movie/%d/credits?api_key=%s&language=en-US&page=1", APIROOT, movieID, APIKEY)
+
+	r, err := newClient().Get(u)
+	if err != nil {
+		return credits{}, err
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode != http.StatusOK {
+		msg, err := io.ReadAll(r.Body)
+		if err != nil {
+			return credits{}, fmt.Errorf("Cannot read body: %w", err)
+		}
+		err = ErrInvalidResponse
+
+		if r.StatusCode == http.StatusNotFound {
+			err = ErrNotFound
+		}
+
+		return credits{}, fmt.Errorf("%w: %s", err, msg)
+	}
+
+	var resp credits
+
+	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
+		return credits{}, err
+	}
+
+	if len(resp.Cast) == 0 && len(resp.Crew) == 0 {
+		return credits{}, fmt.Errorf("%w: no results found", ErrNotFound)
+	}
+
+	return resp, nil
 }

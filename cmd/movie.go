@@ -15,8 +15,9 @@ import (
 
 // movieCmd represents the movie command
 var movieCmd = &cobra.Command{
-	Use:   "movie",
-	Short: "Search for movie <movie>",
+	Use:     "movie",
+	Short:   "Search for movie <movie>",
+	Aliases: []string{"m"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiRoot := viper.GetString("api-root")
 
@@ -35,17 +36,39 @@ func movieAction(out io.Writer, apiRoot string, args []string) error {
 		return err
 	}
 
-	return printMovie(out, movie)
+	details, err := getDetails(movie.MovieID)
+	if err != nil {
+		return err
+	}
+
+	return printMovie(out, movie, details)
 }
 
-func printMovie(out io.Writer, movie movie) error {
-	_, err := fmt.Fprintf(out, "\nTitle:  %s\n\nOverview: %s\n\nRating: %v\n", movie.Title, movie.Overview, movie.VoteAverage)
+func printMovie(out io.Writer, movie movie, details credits) error {
+	director := []string{}
+	dirPhotography := []string{}
+
+	for _, v := range details.Crew {
+		if v.Job == "Director" {
+			director = append(director, v.Name)
+		}
+
+		if v.Job == "Director of Photography" {
+			dirPhotography = append(dirPhotography, v.Name)
+		}
+	}
+
+	dir := strings.Join(director, ", ")
+	photoDir := strings.Join(dirPhotography, ", ")
+
+	_, err := fmt.Fprintf(out, "\nTitle:  %s\nDirector: %s\nPhotography Director: %s\n\nOverview: %s\n\nRating: %v\n",
+		movie.Title, dir, photoDir, movie.Overview, movie.VoteAverage)
 
 	return err
 }
 
 func init() {
-	rootCmd.AddCommand(movieCmd)
+	searchCmd.AddCommand(movieCmd)
 
 	// Here you will define your flags and configuration settings.
 
