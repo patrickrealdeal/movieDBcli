@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -45,74 +45,56 @@ func movieAction(out io.Writer, apiRoot string, args []string) error {
 	return printMovie(out, movie, details)
 }
 
-func getDir(details credits, dirch chan string, wg *sync.WaitGroup) {
-	str := ""
-	for _, v := range details.Crew {
-		if v.Job == "Director" {
-			str = str + v.Name + ", "
-		}
-	}
-	str = strings.TrimSuffix(str, ", ")
-	dirch <- str
-
-	close(dirch)
-	wg.Done()
-}
-
-func getCinematography(details credits, cinech chan string, wg *sync.WaitGroup) {
-	str := ""
-	for _, v := range details.Crew {
-		if v.Job == "Director of Photography" {
-			str = str + v.Name + ", "
-		}
-	}
-	str = strings.TrimSuffix(str, ", ")
-	cinech <- str
-
-	close(cinech)
-	wg.Done()
-}
-
-func getScreenplay(details credits, spch chan string, wg *sync.WaitGroup) {
-	str := ""
-	for _, v := range details.Crew {
-		if v.Job == "Screenplay" {
-			str = str + v.Name + ", "
-		}
-	}
-	str = strings.TrimSuffix(str, ", ")
-	spch <- str
-
-	close(spch)
-	wg.Done()
-}
-
 func printMovie(out io.Writer, movie movie, details credits) error {
-	cinech := make(chan string, 10)
-	dirch := make(chan string, 10)
-	spch := make(chan string, 10)
-	wg := sync.WaitGroup{}
-	wg.Add(3)
+	t := time.Now()
 
-	go getDir(details, dirch, &wg)
-	go getCinematography(details, cinech, &wg)
-	go getScreenplay(details, spch, &wg)
+	dir := func() string {
+		str := ""
+		for _, v := range details.Crew {
+			if v.Job == "Director" {
+				str = str + v.Name + ", "
+			}
+		}
+		str = strings.TrimSuffix(str, ", ")
+		return str
+	}()
 
-	wg.Wait()
+	cine := func() string {
+		str := ""
+		for _, v := range details.Crew {
+			if v.Job == "Director of Photography" {
+				str = str + v.Name + ", "
+			}
+		}
+		str = strings.TrimSuffix(str, ", ")
+		return str
+	}()
 
-	dir := <-dirch
-	cine := <-cinech
-	sp := <-spch
+	sp := func() string {
+		str := ""
+		for _, v := range details.Crew {
+			if v.Job == "Screenplay" {
+				str = str + v.Name + ", "
+			}
+		}
+		str = strings.TrimSuffix(str, ", ")
+		return str
+	}()
 
 	if len(sp) == 0 {
 		_, err := fmt.Fprintf(out, "\nTitle:  %s\nDirector: %s\nCinematography: %s\n\nOverview: %s\n\nRating: %v\n",
 			movie.Title, dir, cine, movie.Overview, movie.VoteAverage)
 
+		t1 := time.Since(t)
+		fmt.Fprintf(out, "%f\n", t1.Seconds())
 		return err
 	}
 
 	_, err := fmt.Fprintf(out, "\nTitle:  %s\nDirector: %s\nCinematography: %s\nScreenplay: %s\n\nOverview: %s\n\nRating: %v\n",
 		movie.Title, dir, cine, sp, movie.Overview, movie.VoteAverage)
+
+	t1 := time.Since(t)
+	fmt.Fprintf(out, "%f\n", t1.Seconds())
 
 	return err
 }

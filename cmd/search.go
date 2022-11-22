@@ -12,9 +12,9 @@ var searchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "Search the movieDB",
 	Long: `Search movieDb for:
-Movie use movie command
+Movie  use movie command
 Person use person command
-Show use shows command`,
+Show   use shows command`,
 }
 
 func init() {
