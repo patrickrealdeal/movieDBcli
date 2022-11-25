@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -144,7 +144,7 @@ func getDetails(movieID int) (credits, error) {
 	}
 
 	file, _ := json.MarshalIndent(resp, "", "")
-	ioutil.WriteFile("obj.json", file, 0644)
+	os.WriteFile("obj.json", file, 0644)
 
 	if len(resp.Cast) == 0 && len(resp.Crew) == 0 {
 		return credits{}, fmt.Errorf("%w: no results found", ErrNotFound)

@@ -42,59 +42,54 @@ func movieAction(out io.Writer, apiRoot string, args []string) error {
 		return err
 	}
 
-	return printMovie(out, movie, details)
+	jobs := []crew{}
+	for _, c := range details.Crew {
+		if c.Job == "Director" || c.Job == "Director of Photography" || c.Job == "Screenplay" {
+			jobs = append(jobs, c)
+		}
+	}
+
+	return printMovie(out, movie, jobs)
 }
 
-func printMovie(out io.Writer, movie movie, details credits) error {
+func printMovie(out io.Writer, movie movie, details []crew) error {
 	t := time.Now()
 
-	dir := func() string {
-		str := ""
-		for _, v := range details.Crew {
-			if v.Job == "Director" {
-				str = str + v.Name + ", "
-			}
-		}
-		str = strings.TrimSuffix(str, ", ")
-		return str
-	}()
+	jobs := []string{"Director", "Director of Photography", "Screenplay"}
 
-	cine := func() string {
-		str := ""
-		for _, v := range details.Crew {
-			if v.Job == "Director of Photography" {
-				str = str + v.Name + ", "
-			}
-		}
-		str = strings.TrimSuffix(str, ", ")
-		return str
-	}()
+	res := []string{}
 
-	sp := func() string {
+	f := func(s string) string {
 		str := ""
-		for _, v := range details.Crew {
-			if v.Job == "Screenplay" {
+		for _, v := range details {
+			if v.Job == s {
 				str = str + v.Name + ", "
 			}
 		}
 		str = strings.TrimSuffix(str, ", ")
 		return str
-	}()
+	}
+
+	for _, j := range jobs {
+		str := f(j)
+		res = append(res, str)
+	}
+
+	dir := res[0]
+	cine := res[1]
+	sp := res[2]
+
+	t1 := time.Since(t)
+	fmt.Fprintf(out, "%s\n", t1.String())
 
 	if len(sp) == 0 {
 		_, err := fmt.Fprintf(out, "\nTitle:  %s\nDirector: %s\nCinematography: %s\n\nOverview: %s\n\nRating: %v\n",
 			movie.Title, dir, cine, movie.Overview, movie.VoteAverage)
-
-		t1 := time.Since(t)
-		fmt.Fprintf(out, "%f\n", t1.Seconds())
 		return err
 	}
 
 	_, err := fmt.Fprintf(out, "\nTitle:  %s\nDirector: %s\nCinematography: %s\nScreenplay: %s\n\nOverview: %s\n\nRating: %v\n",
 		movie.Title, dir, cine, sp, movie.Overview, movie.VoteAverage)
-
-	t1 := time.Since(t)
-	fmt.Fprintf(out, "%f\n", t1.Seconds())
 
 	return err
 }
